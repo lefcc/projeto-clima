@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Elementos do DOM
     const weatherForm = document.getElementById('weather-form');
     const cityInput = document.getElementById('city-input');
-    const searchBtn = document.getElementById('search-btn');
     const weatherResult = document.getElementById('weather-result');
     const errorMessage = document.getElementById('error-message');
     
@@ -11,11 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const temperatureValue = document.getElementById('temperature-value');
     const windSpeed = document.getElementById('wind-speed');
     const windDirection = document.getElementById('wind-direction');
-    const weatherCondition = document.getElementById('weather-condition');
+    const weatherDescription = document.getElementById('weather-description');
     const updateTime = document.getElementById('update-time');
     const errorText = document.getElementById('error-text');
-    
-    // Event Listeners
+    const weatherIcon = document.getElementById('weather-icon');
+
+    // Event Listener
     weatherForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const city = cityInput.value.trim();
@@ -24,50 +24,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Função para obter dados meteorológicos
+    // Função principal para obter dados meteorológicos
     async function getWeatherData(city) {
+        showLoadingState();
         try {
-            // Primeiro, obter as coordenadas da cidade usando a API de geocodificação
+            // 1. Obter coordenadas da cidade (Geocodificação)
             const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=pt`);
             
             if (!geoResponse.ok) {
-                throw new Error('Falha ao buscar localização');
+                throw new Error('Falha ao buscar localização. Tente novamente.');
             }
             
             const geoData = await geoResponse.json();
             
             if (!geoData.results || geoData.results.length === 0) {
-                throw new Error('Cidade não encontrada');
+                throw new Error('Cidade não encontrada. Verifique a digitação.');
             }
             
             const { latitude, longitude, name, country } = geoData.results[0];
             
-            // Agora, obter os dados meteorológicos usando as coordenadas
+            // 2. Obter dados meteorológicos com as coordenadas
             const weatherResponse = await fetch(
                 `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
             );
             
             if (!weatherResponse.ok) {
-                throw new Error('Falha ao obter dados meteorológicos');
+                throw new Error('Falha ao obter dados meteorológicos. Tente novamente.');
             }
             
             const weatherData = await weatherResponse.json();
             
-            // Exibir os dados
+            // 3. Exibir os dados
             displayWeatherData(name, country, weatherData);
             
         } catch (error) {
-            displayError(error.message);
+            // Tratamento refinado de erros
+            if (error instanceof TypeError) {
+                displayError('Falha de conexão. Verifique sua internet e tente novamente.');
+            } else {
+                displayError(error.message);
+            }
         }
     }
     
     // Função para exibir os dados meteorológicos
     function displayWeatherData(city, country, data) {
-        // Ocultar mensagem de erro, se houver
-        errorMessage.classList.add('hidden');
+        hideErrorState();
         
-        // Exibir a seção de resultados
-        weatherResult.classList.remove('hidden');
+        // Atualizar tema (dia/noite)
+        const isDayTime = data.current_weather.is_day === 1;
+        updateTheme(isDayTime);
         
         // Preencher os dados
         cityName.textContent = `${city}, ${country}`;
@@ -75,26 +81,86 @@ document.addEventListener('DOMContentLoaded', function() {
         windSpeed.textContent = data.current_weather.windspeed;
         windDirection.textContent = data.current_weather.winddirection;
         
-        // Traduzir o código do tempo para uma descrição legível
+        // Traduzir e exibir a descrição do clima
         const weatherCode = data.current_weather.weathercode;
-        weatherCondition.textContent = getWeatherDescription(weatherCode);
+        const description = getWeatherDescription(weatherCode);
+        weatherDescription.textContent = description;
         
-        // Formatar a data e hora
+        // Atualizar o ícone do clima
+        updateWeatherIcon(weatherCode, isDayTime);
+        
+        // Formatar e exibir a data e hora completa
         const dateTime = new Date(data.current_weather.time);
-        updateTime.textContent = `Atualizado em: ${dateTime.toLocaleString('pt-BR')}`;
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        updateTime.textContent = `Atualizado em: ${dateTime.toLocaleString('pt-BR', options)}`;
     }
     
     // Função para exibir mensagem de erro
     function displayError(message) {
-        // Ocultar a seção de resultados, se estiver visível
         weatherResult.classList.add('hidden');
-        
-        // Exibir a seção de erro
         errorMessage.classList.remove('hidden');
         errorText.textContent = message;
     }
     
-    // Função para traduzir o código do tempo
+    function hideErrorState() {
+        errorMessage.classList.add('hidden');
+        weatherResult.classList.remove('hidden');
+    }
+    
+    function showLoadingState() {
+        // Opcional: adicionar um spinner ou mensagem de carregamento
+        weatherResult.classList.add('hidden');
+        errorMessage.classList.add('hidden');
+    }
+
+    // Função para atualizar o tema com base no horário
+    function updateTheme(isDayTime) {
+        const body = document.body;
+        if (isDayTime) {
+            body.classList.remove('night-mode');
+        } else {
+            body.classList.add('night-mode');
+        }
+    }
+
+    // Função para atualizar o ícone do clima
+    function updateWeatherIcon(code, isDayTime) {
+        const iconClass = getWeatherIconClass(code, isDayTime);
+        weatherIcon.className = `wi ${iconClass}`;
+    }
+
+    // Mapeamento do código do tempo para a classe do ícone
+    function getWeatherIconClass(code, isDayTime) {
+        const dayPrefix = isDayTime ? 'day-' : 'night-';
+        
+        switch (code) {
+            case 0: return `wi-${dayPrefix}sunny`;
+            case 1: return `wi-${dayPrefix}-clear`;
+            case 2: return 'wi-day-cloudy';
+            case 3: return 'wi-cloudy';
+            case 45: case 48: return 'wi-fog';
+            case 51: case 53: case 55: return 'wi-sprinkle';
+            case 56: case 57: return 'wi-rain-mix';
+            case 61: case 63: case 65: return 'wi-rain';
+            case 66: case 67: return 'wi-rain-mix';
+            case 71: case 73: case 75: return 'wi-snow';
+            case 77: return 'wi-snowflake-cold';
+            case 80: case 81: case 82: return 'wi-showers';
+            case 85: case 86: return 'wi-snow-wind';
+            case 95: return 'wi-thunderstorm';
+            case 96: case 99: return 'wi-storm-showers';
+            default: return `wi-${dayPrefix}-sunny`; // Padrão para casos desconhecidos
+        }
+    }
+    
+    // Função para traduzir o código do tempo (mantida da versão anterior)
     function getWeatherDescription(code) {
         const weatherCodes = {
             0: 'Céu limpo',

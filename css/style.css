@@ -5,11 +5,38 @@
     box-sizing: border-box;
 }
 
+/* Variáveis de Cor para Temas */
+:root {
+    --bg-color: #f0f8ff;
+    --card-bg-color: #ffffff;
+    --text-color: #333333;
+    --primary-color: #3498db;
+    --primary-hover-color: #2980b9;
+    --border-color: #dddddd;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --footer-text-color: #7f8c8d;
+    --error-bg-color: #fff5f5;
+    --error-border-color: #e74c3c;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f8ff;
-    color: #333;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     line-height: 1.6;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Tema Noturno */
+body.night-mode {
+    --bg-color: #1a1a2e;
+    --card-bg-color: #16213e;
+    --text-color: #eee;
+    --primary-color: #4fbdba;
+    --primary-hover-color: #3da9a6;
+    --border-color: #0f3460;
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --footer-text-color: #b0b0b0;
 }
 
 .container {
@@ -26,13 +53,13 @@ header {
 
 header h1 {
     font-size: 2.5rem;
-    color: #2c3e50;
+    color: var(--text-color);
     margin-bottom: 10px;
 }
 
 header p {
     font-size: 1.1rem;
-    color: #7f8c8d;
+    color: var(--footer-text-color);
 }
 
 /* Search Section */
@@ -48,20 +75,22 @@ header p {
 #city-input {
     flex: 1;
     padding: 12px 15px;
-    border: 2px solid #ddd;
+    border: 2px solid var(--border-color);
     border-radius: 5px;
     font-size: 1rem;
+    background-color: var(--card-bg-color);
+    color: var(--text-color);
     transition: border-color 0.3s;
 }
 
 #city-input:focus {
-    border-color: #3498db;
+    border-color: var(--primary-color);
     outline: none;
 }
 
 #search-btn {
     padding: 12px 20px;
-    background-color: #3498db;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: 5px;
@@ -71,7 +100,7 @@ header p {
 }
 
 #search-btn:hover {
-    background-color: #2980b9;
+    background-color: var(--primary-hover-color);
 }
 
 /* Weather Section */
@@ -80,9 +109,9 @@ header p {
 }
 
 .weather-card {
-    background-color: white;
+    background-color: var(--card-bg-color);
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px var(--shadow-color);
     padding: 25px;
     transition: transform 0.3s;
 }
@@ -93,7 +122,7 @@ header p {
 
 #city-name {
     font-size: 1.8rem;
-    color: #2c3e50;
+    color: var(--text-color);
     margin-bottom: 20px;
     text-align: center;
 }
@@ -102,15 +131,27 @@ header p {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
+}
+
+/* Estilo para o Ícone do Clima */
+#weather-icon {
+    font-size: 5rem;
+    color: var(--primary-color);
 }
 
 .temperature {
     font-size: 3rem;
     font-weight: bold;
-    color: #3498db;
+    color: var(--primary-color);
     display: flex;
     align-items: flex-start;
+}
+
+.weather-description {
+    font-size: 1.2rem;
+    color: var(--footer-text-color);
+    text-transform: capitalize;
 }
 
 .unit {
@@ -135,14 +176,14 @@ header p {
 
 .detail-label {
     font-weight: bold;
-    color: #7f8c8d;
+    color: var(--footer-text-color);
     margin-bottom: 5px;
 }
 
 .update-time {
     margin-top: 20px;
     text-align: center;
-    color: #7f8c8d;
+    color: var(--footer-text-color);
     font-size: 0.9rem;
 }
 
@@ -152,14 +193,14 @@ header p {
 }
 
 .error-card {
-    background-color: #fff5f5;
-    border-left: 5px solid #e74c3c;
+    background-color: var(--error-bg-color);
+    border-left: 5px solid var(--error-border-color);
     padding: 20px;
     border-radius: 5px;
 }
 
 .error-card h3 {
-    color: #e74c3c;
+    color: var(--error-border-color);
     margin-bottom: 10px;
 }
 
@@ -173,8 +214,8 @@ footer {
     text-align: center;
     margin-top: 40px;
     padding-top: 20px;
-    border-top: 1px solid #eee;
-    color: #7f8c8d;
+    border-top: 1px solid var(--border-color);
+    color: var(--footer-text-color);
     font-size: 0.9rem;
 }
 
@@ -194,6 +235,10 @@ footer {
     
     .temperature {
         font-size: 2.5rem;
+    }
+    
+    #weather-icon {
+        font-size: 4rem;
     }
     
     .weather-details {

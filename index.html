@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Previsão do Tempo</title>
+    
+    <!-- Biblioteca Weather Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css">
+    
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -32,10 +36,13 @@
                 <div class="weather-card">
                     <h2 id="city-name"></h2>
                     <div class="weather-info">
+                        <!-- Ícone do clima adicionado aqui -->
+                        <i id="weather-icon" class="wi wi-day-sunny"></i>
                         <div class="temperature">
                             <span id="temperature-value"></span>
                             <span class="unit">°C</span>
                         </div>
+                        <div class="weather-description" id="weather-description"></div>
                         <div class="weather-details">
                             <div class="detail-item">
                                 <span class="detail-label">Vento:</span>
@@ -46,10 +53,6 @@
                                 <span class="detail-label">Direção:</span>
                                 <span id="wind-direction"></span>
                                 <span class="unit">°</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Condição:</span>
-                                <span id="weather-condition"></span>
                             </div>
                         </div>
                     </div>
