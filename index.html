@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previsão do Tempo</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Previsão do Tempo</h1>
+            <p>Consulte o clima de qualquer cidade do mundo</p>
+        </header>
+        
+        <main>
+            <section class="search-section">
+                <form id="weather-form">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="city-input" 
+                            placeholder="Digite o nome da cidade..." 
+                            required
+                        >
+                        <button type="submit" id="search-btn">Buscar</button>
+                    </div>
+                </form>
+            </section>
+            
+            <section id="weather-result" class="weather-section hidden">
+                <div class="weather-card">
+                    <h2 id="city-name"></h2>
+                    <div class="weather-info">
+                        <div class="temperature">
+                            <span id="temperature-value"></span>
+                            <span class="unit">°C</span>
+                        </div>
+                        <div class="weather-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Vento:</span>
+                                <span id="wind-speed"></span>
+                                <span class="unit">km/h</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Direção:</span>
+                                <span id="wind-direction"></span>
+                                <span class="unit">°</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Condição:</span>
+                                <span id="weather-condition"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="update-time">
+                        <span id="update-time"></span>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="error-message" class="error-section hidden">
+                <div class="error-card">
+                    <h3>Ops! Algo deu errado</h3>
+                    <p id="error-text"></p>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>Dados fornecidos pela API Open-Meteo</p>
+        </footer>
+    </div>
+    
+    <script src="js/api.js"></script>
+</body>
+</html>
