@@ -1,20 +1,40 @@
 // js/api.js
 
-// --- FUNÇÕES PRINCIPAIS (No escopo global para serem testáveis) ---
+/**
+ * @fileoverview Módulo principal da aplicação de previsão do tempo.
+ * Responsável por buscar dados da API Open-Meteo, processá-los e atualizar a interface do usuário.
+ */
 
+/**
+ * Mapeia códigos meteorológicos da API para descrições em português.
+ * @see https://open-meteo.com/en/docs
+ * @constant {Object<number, string>}
+ */
+const WEATHER_DESCRIPTIONS = {
+    0: 'Céu limpo', 1: 'Principalmente limpo', 2: 'Parcialmente nublado', 3: 'Nublado',
+    45: 'Neblina', 48: 'Neblina com depósito de gelo', 51: 'Garoa leve', 53: 'Garoa moderada', 55: 'Garoa densa',
+    56: 'Garoa leve congelante', 57: 'Garoa densa congelante', 61: 'Chuva leve', 63: 'Chuva moderada', 65: 'Chuva forte',
+    66: 'Chuva leve congelante', 67: 'Chuva forte congelante', 71: 'Neve leve', 73: 'Neve moderada', 75: 'Neve forte',
+    77: 'Grãos de neve', 80: 'Pancadas de chuva leves', 81: 'Pancadas de chuva moderadas', 82: 'Pancadas de chuva violentas',
+    85: 'Pancadas de neve leves', 86: 'Pancadas de neve fortes', 95: 'Tempestade leve ou moderada',
+    96: 'Tempestade com granizo leve', 99: 'Tempestade com granizo forte'
+};
+
+/**
+ * Obtém a descrição do clima com base no código fornecido.
+ * @param {number} code - O código do tempo retornado pela API.
+ * @returns {string} A descrição do tempo em português.
+ * @example
+ * getWeatherDescription(0); // 'Céu limpo'
+ */
 function getWeatherDescription(code) {
-    const weatherCodes = {
-        0: 'Céu limpo', 1: 'Principalmente limpo', 2: 'Parcialmente nublado', 3: 'Nublado',
-        45: 'Neblina', 48: 'Neblina com depósito de gelo', 51: 'Garoa leve', 53: 'Garoa moderada', 55: 'Garoa densa',
-        56: 'Garoa leve congelante', 57: 'Garoa densa congelante', 61: 'Chuva leve', 63: 'Chuva moderada', 65: 'Chuva forte',
-        66: 'Chuva leve congelante', 67: 'Chuva forte congelante', 71: 'Neve leve', 73: 'Neve moderada', 75: 'Neve forte',
-        77: 'Grãos de neve', 80: 'Pancadas de chuva leves', 81: 'Pancadas de chuva moderadas', 82: 'Pancadas de chuva violentas',
-        85: 'Pancadas de neve leves', 86: 'Pancadas de neve fortes', 95: 'Tempestade leve ou moderada',
-        96: 'Tempestade com granizo leve', 99: 'Tempestade com granizo forte'
-    };
-    return weatherCodes[code] || 'Condição desconhecida';
+    return WEATHER_DESCRIPTIONS[code] || 'Condição desconhecida';
 }
 
+/**
+ * Atualiza o tema visual da página com base no horário.
+ * @param {boolean} isDayTime - `true` para o tema diurno, `false` para o noturno.
+ */
 function updateTheme(isDayTime) {
     const body = document.body;
     if (isDayTime) {
@@ -24,124 +44,159 @@ function updateTheme(isDayTime) {
     }
 }
 
-function updateWeatherIcon(code, isDayTime) {
-    // CORREÇÃO: Encontra o elemento aqui, para não depender de uma variável global
-    const weatherIcon = document.getElementById('weather-icon');
-    if (!weatherIcon) return; // Sai se o elemento não existir (evita erros em testes)
-
-    const iconClass = getWeatherIconClass(code, isDayTime);
-    weatherIcon.className = `wi ${iconClass}`;
-}
-
-// js/api.js
-
+/**
+ * Mapeia códigos meteorológicos e horário para as classes CSS dos ícones do Weather Icons.
+ * @param {number} code - O código do tempo.
+ * @param {boolean} isDayTime - `true` se for dia, `false` se for noite.
+ * @returns {string} A classe CSS do ícone correspondente.
+ */
 function getWeatherIconClass(code, isDayTime) {
-    // CORREÇÃO: Caso especial para céu limpo à noite (mostrar a lua)
     if (code === 0 && !isDayTime) {
         return 'wi-night-clear';
     }
-
     const dayPrefix = isDayTime ? 'day-' : 'night-';
-    
     switch (code) {
-        case 0: return `wi-${dayPrefix}sunny`; // Agora só será usado para o dia
+        case 0: return `wi-${dayPrefix}sunny`;
         case 1: return `wi-${dayPrefix}-clear`;
-        case 2: return 'wi-day-cloudy-high'; // Um ícone mais nublado
+        case 2: return 'wi-day-cloudy-high';
         case 3: return 'wi-cloudy';
         case 45: case 48: return 'wi-fog';
         case 51: case 53: case 55: return 'wi-sprinkle';
         case 56: case 57: return 'wi-rain-mix';
         case 61: case 63: case 65: return 'wi-rain';
-        case 66: case 67: return 'wi-rain-mix';
         case 71: case 73: case 75: return 'wi-snow';
-        case 77: return 'wi-snowflake-cold';
         case 80: case 81: case 82: return 'wi-showers';
-        case 85: case 86: return 'wi-snow-wind';
         case 95: return 'wi-thunderstorm';
         case 96: case 99: return 'wi-storm-showers';
         default: return `wi-${dayPrefix}-sunny`;
     }
 }
 
+/**
+ * Atualiza o ícone do clima na interface.
+ * @param {number} code - O código do tempo.
+ * @param {boolean} isDayTime - `true` se for dia, `false` se for noite.
+ */
+function updateWeatherIcon(code, isDayTime) {
+    const weatherIcon = document.getElementById('weather-icon');
+    if (!weatherIcon) return;
+    const iconClass = getWeatherIconClass(code, isDayTime);
+    weatherIcon.className = `wi ${iconClass}`;
+}
+
+/**
+ * Renderiza os dados do clima no elemento principal da UI.
+ * @param {Object} location - Dados da localização {name, country}.
+ * @param {Object} data - Dados meteorológicos retornados pela API.
+ */
+function renderWeatherData(location, data) {
+    const { name, country } = location;
+    const { temperature, windspeed, winddirection, weathercode, is_day, time } = data.current_weather;
+    
+    // Atualiza tema
+    updateTheme(is_day === 1);
+
+    // Preenche os dados
+    document.getElementById('city-name').textContent = `${name}, ${country}`;
+    document.getElementById('temperature-value').textContent = Math.round(temperature);
+    document.getElementById('wind-speed').textContent = windspeed;
+    document.getElementById('wind-direction').textContent = winddirection;
+    document.getElementById('weather-description').textContent = getWeatherDescription(weathercode);
+    updateWeatherIcon(weathercode, is_day === 1);
+    
+    const dateTime = new Date(time);
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    document.getElementById('update-time').textContent = `Atualizado em: ${dateTime.toLocaleString('pt-BR', options)}`;
+    
+    // Exibe a seção de clima
+    document.getElementById('weather-result').classList.remove('hidden');
+    document.getElementById('error-message').classList.add('hidden');
+}
+
+/**
+ * Exibe uma mensagem de erro para o usuário.
+ * @param {string} message - A mensagem de erro a ser exibida.
+ */
+function displayError(message) {
+    document.getElementById('weather-result').classList.add('hidden');
+    document.getElementById('error-message').classList.remove('hidden');
+    document.getElementById('error-text').textContent = message;
+}
+
+/**
+ * Busca as coordenadas (latitude, longitude) de uma cidade usando a API de geocodificação.
+ * @async
+ * @param {string} city - O nome da cidade a ser buscada.
+ * @returns {Promise<Object>} Uma Promise que resolve para um objeto com os dados da localização.
+ * @throws {Error} Se a cidade não for encontrada ou a API falhar.
+ */
+async function fetchCoordinates(city) {
+    const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=pt`);
+    
+    if (geoResponse.status === 429) {
+        throw new Error('Limite de requisições da API excedido. Tente novamente mais tarde.');
+    }
+    if (!geoResponse.ok) {
+        throw new Error('Falha ao buscar localização. Tente novamente.');
+    }
+
+    const geoData = await geoResponse.json();
+    if (!geoData.results || geoData.results.length === 0) {
+        throw new Error('Cidade não encontrada. Verifique a digitação.');
+    }
+    
+    return geoData.results[0];
+}
+
+/**
+ * Busca os dados meteorológicos para as coordenadas fornecidas.
+ * @async
+ * @param {number} latitude - Latitude da localização.
+ * @param {number} longitude - Longitude da localização.
+ * @returns {Promise<Object>} Uma Promise que resolve para os dados meteorológicos.
+ * @throws {Error} Se a API falhar ou os dados estiverem em formato inesperado.
+ */
+async function fetchWeatherData(latitude, longitude) {
+    const weatherResponse = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
+    );
+    
+    if (!weatherResponse.ok) {
+        throw new Error('Falha ao obter dados meteorológicos. Tente novamente.');
+    }
+
+    const weatherData = await weatherResponse.json();
+    if (!weatherData.current_weather) {
+        throw new Error('Resposta da API em formato inesperado. Dados do clima não encontrados.');
+    }
+    
+    return weatherData;
+}
+
+/**
+ * Função principal que orquestra a busca e exibição dos dados do clima.
+ * @async
+ * @param {string} city - O nome da cidade para a qual se deseja a previsão.
+ * @returns {Promise<void>}
+ * @throws {Error} Propaga erros de validação, rede ou da API.
+ * @example
+ * // Exemplo de uso em um event listener de formulário
+ * form.addEventListener('submit', (e) => {
+ *   e.preventDefault();
+ *   getWeatherData('São Paulo');
+ * });
+ */
 async function getWeatherData(city) {
-    const weatherResult = document.getElementById('weather-result');
-    const errorMessage = document.getElementById('error-message');
-    const cityName = document.getElementById('city-name');
-    const temperatureValue = document.getElementById('temperature-value');
-    const windSpeed = document.getElementById('wind-speed');
-    const windDirection = document.getElementById('wind-direction');
-    const weatherDescription = document.getElementById('weather-description');
-    const updateTime = document.getElementById('update-time');
-    const errorText = document.getElementById('error-text');
-
-    const displayError = (message) => {
-        weatherResult.classList.add('hidden');
-        errorMessage.classList.remove('hidden');
-        errorText.textContent = message;
-    };
-
     if (!city) {
         displayError('Por favor, digite o nome de uma cidade.');
         return;
     }
 
     try {
-        const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=pt`);
-        
-        // CORREÇÃO: Tratamento específico para limite de requisições (429)
-        if (geoResponse.status === 429) {
-            throw new Error('Limite de requisições da API excedido. Tente novamente mais tarde.');
-        }
-
-        if (!geoResponse.ok) {
-            throw new Error('Falha ao buscar localização. Tente novamente.');
-        }
-        
-        const geoData = await geoResponse.json();
-        
-        if (!geoData.results || geoData.results.length === 0) {
-            throw new Error('Cidade não encontrada. Verifique a digitação.');
-        }
-        
-        const { latitude, longitude, name, country } = geoData.results[0];
-        
-        const weatherResponse = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
-        );
-        
-        if (!weatherResponse.ok) {
-            throw new Error('Falha ao obter dados meteorológicos. Tente novamente.');
-        }
-        
-        const weatherData = await weatherResponse.json();
-
-        // CORREÇÃO: Validação do formato da resposta JSON
-        if (!weatherData.current_weather) {
-            throw new Error('Resposta da API em formato inesperado. Dados do clima não encontrados.');
-        }
-
-        // Se tudo deu certo, exibe os dados
-        errorMessage.classList.add('hidden');
-        weatherResult.classList.remove('hidden');
-        
-        const isDayTime = weatherData.current_weather.is_day === 1;
-        updateTheme(isDayTime);
-        
-        cityName.textContent = `${name}, ${country}`;
-        temperatureValue.textContent = Math.round(weatherData.current_weather.temperature);
-        windSpeed.textContent = weatherData.current_weather.windspeed;
-        windDirection.textContent = weatherData.current_weather.winddirection;
-        
-        const weatherCode = weatherData.current_weather.weathercode;
-        weatherDescription.textContent = getWeatherDescription(weatherCode);
-        updateWeatherIcon(weatherCode, isDayTime);
-        
-        const dateTime = new Date(weatherData.current_weather.time);
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        updateTime.textContent = `Atualizado em: ${dateTime.toLocaleString('pt-BR', options)}`;
-        
+        const location = await fetchCoordinates(city);
+        const weatherData = await fetchWeatherData(location.latitude, location.longitude);
+        renderWeatherData(location, weatherData);
     } catch (error) {
-        // CORREÇÃO: Tratamento mais específico para erros de rede (TypeError)
         if (error instanceof TypeError) {
             displayError('Falha de conexão. Verifique sua internet e tente novamente.');
         } else {
@@ -150,7 +205,7 @@ async function getWeatherData(city) {
     }
 }
 
-// --- INICIALIZAÇÃO E EXPORTAÇÃO (Sem mudanças aqui) ---
+// --- INICIALIZAÇÃO E EXPORTAÇÃO ---
 
 function initializeApp() {
     const weatherForm = document.getElementById('weather-form');
@@ -176,6 +231,9 @@ if (typeof module !== 'undefined' && module.exports) {
     getWeatherDescription,
     updateWeatherIcon,
     updateTheme,
-    getWeatherIconClass
+    getWeatherIconClass,
+    fetchCoordinates,
+    fetchWeatherData,
+    renderWeatherData
   };
 }
