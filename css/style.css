@@ -7,14 +7,14 @@
 
 /* Variáveis de Cor para Temas */
 :root {
-    --bg-color: #f0f8ff;
-    --card-bg-color: #ffffff;
-    --text-color: #333333;
+    --bg-color: #a7c8e6f1;
+    --card-bg-color: #f7efef;
+    --text-color: #494343;
     --primary-color: #3498db;
     --primary-hover-color: #2980b9;
     --border-color: #dddddd;
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --footer-text-color: #7f8c8d;
+    --shadow-color: rgba(0, 0, 0, 0.171);
+    --footer-text-color: #31474b;
     --error-bg-color: #fff5f5;
     --error-border-color: #e74c3c;
 }
