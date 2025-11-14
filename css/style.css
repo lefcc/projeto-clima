@@ -335,3 +335,78 @@ footer {
     background-color: var(--primary-color);
     color: white;
 }
+
+/* --- Seção de Previsão de 5 Dias --- */
+
+.forecast-section {
+    margin-bottom: 30px;
+}
+
+.forecast-section h3 {
+    color: var(--text-color);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.forecast-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.forecast-day-card {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.forecast-day-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.forecast-date {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.forecast-icon {
+    font-size: 2rem;
+    margin: 10px 0;
+    color: var(--primary-color);
+}
+
+.forecast-temps {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.temp-max {
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.temp-min {
+    color: var(--footer-text-color);
+}
+
+/* Responsive Design para a Previsão */
+@media (max-width: 480px) {
+    .forecast-list {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+    }
+    .forecast-day-card {
+        padding: 10px;
+    }
+    .forecast-icon {
+        font-size: 1.5rem;
+    }
+}

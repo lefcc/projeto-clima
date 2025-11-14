@@ -2,6 +2,7 @@
 
 global.fetch = jest.fn();
 
+// CORREÇÃO: Garanta que todas as funções necessárias sejam importadas, incluindo a nova 'renderForecast'
 const {
     getWeatherData,
     getWeatherDescription,
@@ -9,17 +10,40 @@ const {
     updateTheme,
     fetchCoordinates,
     fetchWeatherData,
-    renderWeatherData
+    renderWeatherData,
+    renderForecast
 } = require('../js/api.js');
 
-// Mocks de dados
+// Mocks de dados - devem estar definidos no escopo correto
 const mockLocation = { latitude: -23.55, longitude: -46.63, name: "São Paulo", country: "Brasil" };
-const mockWeatherData = { current_weather: { temperature: 24.5, windspeed: 5.7, winddirection: 120, weathercode: 3, is_day: 1, time: "2025-10-08T15:00" } };
+const mockWeatherData = {
+    current_weather: { temperature: 24.5, windspeed: 5.7, winddirection: 120, weathercode: 3, is_day: 1, time: "2025-10-08T15:00" },
+    // CORREÇÃO: Inclui o objeto 'daily' com dados mockados
+    daily: {
+        time: ['2025-10-08', '2025-10-09', '2025-10-10', '2025-10-11', '2025-10-12', '2025-10-13'],
+        weathercode: [3, 0, 2, 80, 1, 3],
+        temperature_2m_max: [25, 26, 24, 22, 23, 25],
+        temperature_2m_min: [15, 16, 14, 12, 13, 15],
+    }
+};
+const mockDailyData = {
+    time: [
+        '2023-10-26', // Hoje (ignorado)
+        '2023-10-27', // Amanhã
+        '2023-10-28',
+        '2023-10-29',
+        '2023-10-30',
+        '2023-10-31'
+    ],
+    temperature_2m_max: [25, 26, 24, 22, 23, 25],
+    temperature_2m_min: [15, 16, 14, 12, 13, 15],
+    weathercode: [0, 3, 80, 95, 2, 0]
+};
 
 describe('Testes da API de Previsão do Tempo', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        // CORREÇÃO: Adicionada a seção .search-section que faltava no DOM de teste
+        // CORREÇÃO: Adiciona a seção .search-section e a nova #forecast-section que faltavam no DOM de teste
         document.body.innerHTML = `
             <section class="search-section">
                 <form id="weather-form">
@@ -39,6 +63,10 @@ describe('Testes da API de Previsão do Tempo', () => {
                 <span id="wind-direction"></span> <span id="weather-description"></span> <span id="update-time"></span>
                 <i id="weather-icon" class="wi"></i>
             </div>
+            <section id="forecast-section" class="forecast-section hidden">
+                <h3>Previsão para os próximos 5 dias</h3>
+                <div id="forecast-list" class="forecast-list"></div>
+            </section>
             <div id="error-message" class="error-section hidden"><p id="error-text"></p></div>
         `;
     });
@@ -58,6 +86,7 @@ describe('Testes da API de Previsão do Tempo', () => {
             // Verifica se a view correta está sendo exibida
             expect(document.querySelector('.search-section').classList.contains('hidden')).toBe(true);
             expect(document.getElementById('weather-result').classList.contains('hidden')).toBe(false);
+            expect(document.getElementById('forecast-section').classList.contains('hidden')).toBe(false);
         });
 
         test('Deve exibir erro para entrada vazia', async () => {
@@ -84,7 +113,6 @@ describe('Testes da API de Previsão do Tempo', () => {
         test('Deve retornar dados de localização para uma cidade válida', async () => {
             fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ results: [mockLocation] }) });
             const location = await fetchCoordinates('São Paulo');
-            // CORREÇÃO: A função agora retorna um array, então o teste deve esperar um array
             expect(location).toEqual([mockLocation]);
         });
 
@@ -102,7 +130,8 @@ describe('Testes da API de Previsão do Tempo', () => {
         });
 
         test('Deve lançar erro para resposta sem current_weather', async () => {
-            fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) });
+            // CORREÇÃO: O mock deve falhar na verificação de 'current_weather' ou 'daily'
+            fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ current_weather: null }) });
             await expect(fetchWeatherData(0, 0)).rejects.toThrow('formato inesperado');
         });
     });
@@ -113,6 +142,43 @@ describe('Testes da API de Previsão do Tempo', () => {
             expect(document.getElementById('city-name').textContent).toBe('São Paulo, Brasil');
             expect(document.getElementById('weather-result').classList.contains('hidden')).toBe(false);
             expect(document.querySelector('.search-section').classList.contains('hidden')).toBe(true);
+        });
+    });
+
+    // Teste para a nova funcionalidade de previsão
+    describe('renderForecast', () => {
+        test('Deve renderizar a previsão de 5 dias', () => {
+            // CORREÇÃO: Mockamos a função de formatação de datas para garantir que o teste seja previsível
+            const mockToLocaleDateString = jest.spyOn(Date.prototype, 'toLocaleDateString')
+                .mockReturnValue('sex.'); // Força o retorno a ser "sex."
+
+            const mockDailyData = {
+                time: [
+                    '2023-10-26', // Hoje (ignorado)
+                    '2023-10-27', // Amanhã
+                    '2023-10-28',
+                    '2023-10-29',
+                    '2023-10-30',
+                    '2023-10-31'
+                ],
+                temperature_2m_max: [25, 26, 24, 22, 23, 25],
+                temperature_2m_min: [15, 16, 14, 12, 13, 15],
+                weathercode: [0, 3, 80, 95, 2, 0]
+            };
+            
+            renderForecast(mockDailyData);
+
+            const forecastCards = document.querySelectorAll('.forecast-day-card');
+            expect(forecastCards.length).toBe(5);
+            
+            const firstCard = forecastCards[0];
+            expect(firstCard.querySelector('.forecast-date').textContent).toBe('sex.');
+            expect(firstCard.querySelector('.temp-max').textContent).toBe('26°');
+            expect(firstCard.querySelector('.temp-min').textContent).toBe('16°');
+            expect(firstCard.querySelector('.forecast-icon').className).toContain('wi-cloudy');
+            
+            // CORREÇÃO: Restauramos a função original para não afetar outros testes
+            mockToLocaleDateString.mockRestore();
         });
     });
 
