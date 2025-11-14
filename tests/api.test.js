@@ -19,7 +19,21 @@ const mockWeatherData = { current_weather: { temperature: 24.5, windspeed: 5.7, 
 describe('Testes da API de Previsão do Tempo', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        // CORREÇÃO: Adicionada a seção .search-section que faltava no DOM de teste
         document.body.innerHTML = `
+            <section class="search-section">
+                <form id="weather-form">
+                    <div class="input-group">
+                        <input type="text" id="city-input" placeholder="Digite o nome da cidade..." required>
+                        <button type="submit" id="search-btn">Buscar</button>
+                    </div>
+                </form>
+            </section>
+            <section id="city-selection" class="city-selection-section hidden">
+                <h3>Encontramos múltiplas cidades...</h3>
+                <div id="city-list" class="city-list"></div>
+                <button id="back-to-search" class="back-button">Voltar para a busca</button>
+            </section>
             <div id="weather-result" class="weather-section hidden">
                 <h2 id="city-name"></h2> <span id="temperature-value"></span> <span id="wind-speed"></span>
                 <span id="wind-direction"></span> <span id="weather-description"></span> <span id="update-time"></span>
@@ -41,11 +55,15 @@ describe('Testes da API de Previsão do Tempo', () => {
             expect(fetch).toHaveBeenCalledTimes(2);
             expect(document.getElementById('city-name').textContent).toBe('São Paulo, Brasil');
             expect(document.getElementById('temperature-value').textContent).toBe('25');
+            // Verifica se a view correta está sendo exibida
+            expect(document.querySelector('.search-section').classList.contains('hidden')).toBe(true);
+            expect(document.getElementById('weather-result').classList.contains('hidden')).toBe(false);
         });
 
         test('Deve exibir erro para entrada vazia', async () => {
             await getWeatherData('');
             expect(document.getElementById('error-text').textContent).toContain('Por favor, digite o nome de uma cidade');
+            expect(document.getElementById('error-message').classList.contains('hidden')).toBe(false);
         });
 
         test('Deve exibir erro para cidade não encontrada', async () => {
@@ -66,7 +84,8 @@ describe('Testes da API de Previsão do Tempo', () => {
         test('Deve retornar dados de localização para uma cidade válida', async () => {
             fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ results: [mockLocation] }) });
             const location = await fetchCoordinates('São Paulo');
-            expect(location).toEqual(mockLocation);
+            // CORREÇÃO: A função agora retorna um array, então o teste deve esperar um array
+            expect(location).toEqual([mockLocation]);
         });
 
         test('Deve lançar erro para limite de requisições (429)', async () => {
@@ -93,6 +112,7 @@ describe('Testes da API de Previsão do Tempo', () => {
             renderWeatherData(mockLocation, mockWeatherData);
             expect(document.getElementById('city-name').textContent).toBe('São Paulo, Brasil');
             expect(document.getElementById('weather-result').classList.contains('hidden')).toBe(false);
+            expect(document.querySelector('.search-section').classList.contains('hidden')).toBe(true);
         });
     });
 
