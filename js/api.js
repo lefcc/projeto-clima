@@ -134,7 +134,7 @@ function displayError(message) {
 function renderWeatherData(location, data) {
     const { name, country } = location;
     const { temperature, windspeed, winddirection, weathercode, is_day, time } = data.current_weather;
-    
+
     updateTheme(is_day === 1);
     document.getElementById('city-name').textContent = `${name}, ${country}`;
     document.getElementById('temperature-value').textContent = Math.round(temperature);
@@ -142,11 +142,11 @@ function renderWeatherData(location, data) {
     document.getElementById('wind-direction').textContent = getWindDirection(winddirection);
     document.getElementById('weather-description').textContent = getWeatherDescription(weathercode);
     updateWeatherIcon(weathercode, is_day === 1);
-    
+
     const dateTime = new Date(time);
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     document.getElementById('update-time').textContent = `Atualizado em: ${dateTime.toLocaleString('pt-BR', options)}`;
-    
+
     showView('weather');
 }
 
@@ -171,7 +171,7 @@ function renderForecast(forecastData) {
     if (startIndex === -1) {
         startIndex = 1;
     }
-    
+
     // --- Renderiza os 5 dias a partir do índice de amanhã encontrado ---
     for (let i = 0; i < 5; i++) {
         const dataIndex = startIndex + i;
@@ -183,14 +183,14 @@ function renderForecast(forecastData) {
         let maxTemp = Math.round(forecastData.temperature_2m_max[dataIndex]);
         let minTemp = Math.round(forecastData.temperature_2m_min[dataIndex]);
         let weatherCode = forecastData.weathercode[dataIndex];
-        
+
         // CORREÇÃO DEFINITIVA: Usamos Number.isInteger() para uma verificação muito mais segura.
         // Isso captura null, undefined, strings e qualquer coisa que não seja um número inteiro válido.
         if (!Number.isInteger(weatherCode) || weatherCode < 0) {
             console.warn(`Código do tempo inválido para ${time}. Valor recebido: ${weatherCode}. Usando ícone padrão.`);
             weatherCode = 0; // Usa "Céu limpo" como fallback
         }
-        
+
         const dayCard = document.createElement('div');
         dayCard.className = 'forecast-day-card';
 
@@ -205,10 +205,10 @@ function renderForecast(forecastData) {
                 <span class="temp-min">${minTemp}°</span>
             </div>
         `;
-        
+
         forecastList.appendChild(dayCard);
     }
-    
+
     document.getElementById('forecast-section').classList.remove('hidden');
 }
 
@@ -223,7 +223,7 @@ function renderForecast(forecastData) {
  */
 async function fetchCoordinates(city) {
     const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=5&language=pt`);
-    
+
     if (geoResponse.status === 429) {
         throw new Error('Limite de requisições da API excedido. Tente novamente mais tarde.');
     }
@@ -232,11 +232,11 @@ async function fetchCoordinates(city) {
     }
 
     const geoData = await geoResponse.json();
-    
+
     if (!geoData.results || geoData.results.length === 0) {
         throw new Error('Cidade não encontrada. Verifique a digitação.');
     }
-    
+
     return geoData.results;
 }
 
@@ -253,7 +253,7 @@ async function fetchWeatherData(latitude, longitude) {
     const weatherResponse = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`
     );
-    
+
     if (!weatherResponse.ok) {
         throw new Error('Falha ao obter dados meteorológicos. Tente novamente.');
     }
@@ -262,7 +262,7 @@ async function fetchWeatherData(latitude, longitude) {
     if (!weatherData.current_weather || !weatherData.daily) {
         throw new Error('Resposta da API em formato inesperado. Dados do clima não encontrados.');
     }
-    
+
     return weatherData;
 }
 
@@ -278,14 +278,14 @@ function displayCitySelection(cities) {
         const { name, country, admin1, latitude, longitude } = city;
         const cityOption = document.createElement('div');
         cityOption.className = 'city-option';
-        
+
         const displayName = admin1 ? `${name}, ${admin1}` : name;
 
         cityOption.innerHTML = `
             <div class="city-name">${displayName}</div>
             <div class="city-details">${country}</div>
         `;
-        
+
         cityOption.addEventListener('click', () => {
             handleCitySelection({ name, country, latitude, longitude });
         });
@@ -347,9 +347,13 @@ function initializeApp() {
     const weatherForm = document.getElementById('weather-form');
     const cityInput = document.getElementById('city-input');
     const backToSearchBtn = document.getElementById('back-to-search');
+    const licenseNotice = document.getElementById('license-notice');
+    const closeLicenseBtn = document.getElementById('close-license');
+    const privacyNotice = document.getElementById('privacy-notice');
+    const closePrivacyBtn = document.getElementById('close-privacy');
 
     if (weatherForm) {
-        weatherForm.addEventListener('submit', function(e) {
+        weatherForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const city = cityInput.value.trim();
             if (city) {
@@ -364,6 +368,19 @@ function initializeApp() {
             showView('search');
         });
     }
+
+    if (closePrivacyBtn) {
+        closePrivacyBtn.addEventListener('click', () => {
+            privacyNotice.style.display = 'none';
+        });
+    }
+
+    if (closeLicenseBtn) {
+        closeLicenseBtn.addEventListener('click', () => {
+            licenseNotice.style.display = 'none';
+        });
+    }
+
 }
 
 if (typeof document !== 'undefined') {
@@ -371,14 +388,14 @@ if (typeof document !== 'undefined') {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    getWeatherData,
-    getWeatherDescription,
-    updateWeatherIcon,
-    updateTheme,
-    fetchCoordinates,
-    fetchWeatherData,
-    renderWeatherData,
-    renderForecast
-  };
+    module.exports = {
+        getWeatherData,
+        getWeatherDescription,
+        updateWeatherIcon,
+        updateTheme,
+        fetchCoordinates,
+        fetchWeatherData,
+        renderWeatherData,
+        renderForecast
+    };
 }

@@ -410,3 +410,33 @@ footer {
         font-size: 1.5rem;
     }
 }
+
+/* --- Banners de Aviso --- */
+.notice-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 0.9rem;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.notice-banner button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.license-banner {
+    bottom: 50px; /* Posiciona acima do banner de privacidade */
+}

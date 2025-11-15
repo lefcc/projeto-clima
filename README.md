@@ -87,3 +87,16 @@ Os testes foram escritos para garantir a robustez da aplicação, cobrindo:
 
 A cobertura de testes é alta, garantindo que as principais funcionalidades e casos extremos são validados.
 
+## 🔒 Segurança e Privacidade
+Este projeto foi desenvolvido com atenção à segurança e privacidade do usuário.
+
+Sem Armazenamento de Dados: Nenhuma informação pessoal ou de busca é armazenada localmente ou em servidores.
+Comunicação Segura: A comunicação com a API Open-Meteo é feita exclusivamente via HTTPS.
+Dependências Seguras: Todas as dependências são de fontes confiáveis e suas licenças foram auditadas.
+Para mais detalhes, consulte nosso Relatório de Segurança e Privacidade.
+
+## 📄 Licença
+Este projeto está licenciado sob a Licença ISC. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 📋 Atribuições
+Este projeto utiliza recursos de terceiros, devidamente licenciados. Veja o arquivo [NOTICE.md](NOTICE.md) para a lista completa de atribuições.
