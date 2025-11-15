@@ -84,6 +84,14 @@ function updateWeatherIcon(code, isDayTime) {
     weatherIcon.className = `wi ${iconClass}`;
 }
 
+function getWindDirection(degree) {
+    const directions = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
+    const index = Math.round(degree / 45) % 8;
+    return directions[index];
+}
+
+
+
 // --- GERENCIAMENTO DE ESTADO DA INTERFACE ---
 
 /**
@@ -131,7 +139,7 @@ function renderWeatherData(location, data) {
     document.getElementById('city-name').textContent = `${name}, ${country}`;
     document.getElementById('temperature-value').textContent = Math.round(temperature);
     document.getElementById('wind-speed').textContent = windspeed;
-    document.getElementById('wind-direction').textContent = winddirection;
+    document.getElementById('wind-direction').textContent = getWindDirection(winddirection);
     document.getElementById('weather-description').textContent = getWeatherDescription(weathercode);
     updateWeatherIcon(weathercode, is_day === 1);
     
@@ -144,20 +152,44 @@ function renderWeatherData(location, data) {
 
 // --- NOVA FUNCIONALIDADE: PREVISÃO DE 5 DIAS ---
 
-/**
- * Renderiza a previsão do tempo para os próximos 5 dias.
- * @param {Array<Object>} forecastData - Array com dados diários da API.
- */
 function renderForecast(forecastData) {
     const forecastList = document.getElementById('forecast-list');
-    forecastList.innerHTML = '';
+    forecastList.innerHTML = ''; // Limpa resultados anteriores
 
-    const nextFiveDays = forecastData.time.slice(1, 6);
+    // --- Lógica para encontrar o índice de "amanhã" (sem mudanças) ---
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    let startIndex = -1;
+    for (let i = 0; i < forecastData.time.length; i++) {
+        const forecastDate = new Date(forecastData.time[i]);
+        if (forecastDate.toDateString() === tomorrow.toDateString()) {
+            startIndex = i;
+            break;
+        }
+    }
+    if (startIndex === -1) {
+        startIndex = 1;
+    }
+    
+    // --- Renderiza os 5 dias a partir do índice de amanhã encontrado ---
+    for (let i = 0; i < 5; i++) {
+        const dataIndex = startIndex + i;
+        if (dataIndex >= forecastData.time.length) {
+            break;
+        }
 
-    nextFiveDays.forEach((time, index) => {
-        const maxTemp = Math.round(forecastData.temperature_2m_max[index + 1]);
-        const minTemp = Math.round(forecastData.temperature_2m_min[index + 1]);
-        const weatherCode = forecastData.weathercode[index + 1];
+        const time = forecastData.time[dataIndex];
+        let maxTemp = Math.round(forecastData.temperature_2m_max[dataIndex]);
+        let minTemp = Math.round(forecastData.temperature_2m_min[dataIndex]);
+        let weatherCode = forecastData.weathercode[dataIndex];
+        
+        // CORREÇÃO DEFINITIVA: Usamos Number.isInteger() para uma verificação muito mais segura.
+        // Isso captura null, undefined, strings e qualquer coisa que não seja um número inteiro válido.
+        if (!Number.isInteger(weatherCode) || weatherCode < 0) {
+            console.warn(`Código do tempo inválido para ${time}. Valor recebido: ${weatherCode}. Usando ícone padrão.`);
+            weatherCode = 0; // Usa "Céu limpo" como fallback
+        }
         
         const dayCard = document.createElement('div');
         dayCard.className = 'forecast-day-card';
@@ -175,7 +207,7 @@ function renderForecast(forecastData) {
         `;
         
         forecastList.appendChild(dayCard);
-    });
+    }
     
     document.getElementById('forecast-section').classList.remove('hidden');
 }
